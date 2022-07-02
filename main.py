@@ -6,7 +6,15 @@
 #Import dependencies
 import tensorflow as tf
 from tensorflow.keras import datasets, layers, models, optimizers, losses
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D, Activation
 import matplotlib.pyplot as plt
+
+# Classes and Functions
+class myCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        if (logs.get('acc') > 0.80):
+            print("\nReached 80% accuracy so cancelling training!")
+            self.model.stop_training = True
 
 #Load data into enviroment
 (train_imgs, train_labels),(test_imgs, test_labels) = datasets.cifar10.load_data()
@@ -37,20 +45,20 @@ for i in range(25):
 plt.show()
 
 #Model,compile, fit
-model = models.Sequential()
-#input layer
-model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)))
-model.add(layers.MaxPool2D((2, 2)))
-
-model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-model.add(layers.MaxPool2D((2, 2)))
-
-model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-model.add(layers.Flatten())
-
-#output layer
-model.add(layers.Dense(64, activation='relu'))
-model.add(layers.Dense(10))
+a = (3, 3)
+callbacks = myCallback()
+model = models.Sequential([
+    Conv2D(32, a, activation="relu", input_shape=(32, 32, 3)),
+    #MaxPool2D((2, 2)),
+    Conv2D(64, a, activation="relu"),
+    MaxPool2D(),
+    Conv2D(64, a, activation="relu"),
+    Conv2D(64, a, activation="relu"),
+    MaxPool2D(),
+    Flatten(),
+    Dense(64, activation="relu"),
+    Dense(10, activation='softmax')
+])
 
 #compile
 model.compile(optimizer=optimizers.Adam(lr=0.001),
